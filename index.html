@@ -143,6 +143,7 @@ p{color:var(--muted);line-height:1.45;margin:0 0 14px}
         <div class="field"><label>AD SOYAD *</label><input id="name" placeholder="Adınız ve soyadınız"></div>
         <div class="field"><label>TELEFON NUMARASI *</label><input id="phone" type="tel" placeholder="05XX XXX XX XX"></div>
         <div class="field"><label>DOĞUM TARİHİ *</label><input id="birth" type="date"></div>
+        <div class="field"><label>KAN GRUBU *</label><input id="blood" placeholder="Örn. A Rh+"></div>
         <div class="actions"><button class="btn secondary" onclick="go(0)">Geri</button><button class="btn primary" onclick="personal()">Devam</button></div>
       </div>
     </div>
@@ -153,8 +154,8 @@ p{color:var(--muted);line-height:1.45;margin:0 0 14px}
         <h2>Sağlık beyanı</h2>
         <p>Etkinlik sırasında ekibimizin bilmesi gereken bir sağlık durumunuz var mı?</p>
         <div class="choice-grid">
-          <button class="choice" id="no" onclick="health('Yok')">🙂 Hayır, yok</button>
-          <button class="choice" id="yes" onclick="health('Var')">🩺 Evet, var</button>
+          <button class="choice" id="no" onclick="health('Herhangi bir sağlık sorunum yok')">🙂 Hayır, yok</button>
+          <button class="choice" id="yes" onclick="health('Sağlık sorunum var')">🩺 Evet, var</button>
         </div>
         <div id="healthBox" class="field hidden"><label>AÇIKLAMA *</label><textarea id="healthText" placeholder="Rahatsızlık, alerji, düzenli kullanılan ilaç vb."></textarea></div>
         <div class="actions"><button class="btn secondary" onclick="go(1)">Geri</button><button class="btn primary" onclick="healthNext()">Devam</button></div>
@@ -181,19 +182,35 @@ p{color:var(--muted);line-height:1.45;margin:0 0 14px}
         <div class="consent"><input id="c1" type="checkbox"><label for="c1">Aydınlatma metnini okudum ve bilgilendirildim.</label></div>
         <div class="consent"><input id="c2" type="checkbox"><label for="c2">Sağlık bilgilerimin etkinlik güvenliği amacıyla işlenmesine açık rıza veriyorum.</label></div>
         <div class="consent"><input id="c3" type="checkbox"><label for="c3">Acil durumda bildirdiğim kişiyle iletişim kurulmasını kabul ediyorum.</label></div>
-        <div class="actions"><button class="btn secondary" onclick="go(3)">Geri</button><button class="btn primary" onclick="finish()">Katılımımı Onayla</button></div>
+        <div class="actions"><button class="btn secondary" onclick="go(3)">Geri</button><button class="btn primary" id="submitBtn" onclick="finish()">Katılımımı Onayla</button></div>
       </div>
     </div>
 
     <div class="step" data-step="5">
       <div class="card success">
         <div class="orb">✅</div>
-        <h2>Kaydınız hazır</h2>
-        <p>Arayüz demosu başarıyla tamamlandı.</p>
-        <div class="demo-note">Bu sürüm görsel demodur. Bir sonraki aşamada gerçek kayıtları veri kaynağına bağlayacağız.</div>
+        <h2>Kaydınız alındı ✅</h2>
+        <p>Katılım bilgileriniz başarıyla gönderildi.</p>
+        <div class="demo-note">Bilgileriniz organizasyon ekibinin kayıt tablosuna iletildi.</div>
       </div>
     </div>
   </section>
+
+  <iframe name="hidden_iframe" id="hidden_iframe" style="display:none"></iframe>
+  <form id="googleForm"
+        action="https://docs.google.com/forms/d/e/1FAIpQLSexMBJnFfXIvT96vVLyT12t5G2bFj3gblN_u2Ld4wF-xT7lKw/formResponse"
+        method="POST" target="hidden_iframe" style="display:none">
+    <input name="entry.553578116" id="gf-name">
+    <input name="entry.831719356" id="gf-phone">
+    <input name="entry.1115860517" id="gf-birth">
+    <input name="entry.220541099" id="gf-blood">
+    <input name="entry.1777674604" id="gf-health">
+    <input name="entry.675718353" id="gf-healthText">
+    <input name="entry.939473281" id="gf-emergencyName">
+    <input name="entry.262924186" id="gf-relation">
+    <input name="entry.1824805985" id="gf-emergencyPhone">
+    <input name="entry.2060604298" value="1. seçenek">
+  </form>
 
   <nav class="bottom-nav">
     <div class="nav-item active"><div class="dot">⌂</div>Başlangıç</div>
@@ -216,17 +233,18 @@ function personal(){
   if(!v('name')) return alert('Lütfen ad soyad giriniz.');
   if(!v('phone')) return alert('Lütfen telefon numarası giriniz.');
   if(!v('birth')) return alert('Lütfen doğum tarihinizi seçiniz.');
+  if(!v('blood')) return alert('Lütfen kan grubunuzu giriniz.');
   go(2);
 }
 function health(x){
   hs=x;
-  document.getElementById('no').classList.toggle('selected',x==='Yok');
-  document.getElementById('yes').classList.toggle('selected',x==='Var');
-  document.getElementById('healthBox').classList.toggle('hidden',x!=='Var');
+  document.getElementById('no').classList.toggle('selected',x==='Herhangi bir sağlık sorunum yok');
+  document.getElementById('yes').classList.toggle('selected',x==='Sağlık sorunum var');
+  document.getElementById('healthBox').classList.toggle('hidden',x!=='Sağlık sorunum var');
 }
 function healthNext(){
   if(!hs) return alert('Lütfen sağlık durumunuzu seçiniz.');
-  if(hs==='Var'&&!v('healthText')) return alert('Lütfen açıklama giriniz.');
+  if(hs==='Sağlık sorunum var'&&!v('healthText')) return alert('Lütfen açıklama giriniz.');
   go(3);
 }
 function emergency(){
@@ -235,7 +253,23 @@ function emergency(){
 }
 function finish(){
   if(!['c1','c2','c3'].every(id=>document.getElementById(id).checked)) return alert('Üç onayı da işaretleyiniz.');
-  go(5);
+
+  document.getElementById('gf-name').value = v('name');
+  document.getElementById('gf-phone').value = v('phone');
+  document.getElementById('gf-birth').value = v('birth');
+  document.getElementById('gf-blood').value = v('blood');
+  document.getElementById('gf-health').value = hs;
+  document.getElementById('gf-healthText').value = v('healthText');
+  document.getElementById('gf-emergencyName').value = v('emergencyName');
+  document.getElementById('gf-relation').value = v('relation');
+  document.getElementById('gf-emergencyPhone').value = v('emergencyPhone');
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = 'Gönderiliyor…';
+
+  document.getElementById('googleForm').submit();
+  setTimeout(()=>go(5), 500);
 }
 </script>
 </body>
